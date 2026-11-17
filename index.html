@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meal Planner Wheel</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: system-ui, sans-serif;
+    background: #fff;
+    color: #222;
+  }
+  h1 { font-weight: 400; margin: 0 0 1rem; }
+  svg { width: min(80vw, 80vh); height: min(80vw, 80vh); cursor: pointer; }
+  #wheel {
+    transform-origin: 200px 200px;
+    transition: transform 4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  #wheel text { font-size: 12px; fill: #333; }
+  #result {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.7);
+  }
+  #result.show { display: flex; }
+  .card {
+    position: relative;
+    padding: 2rem 3rem;
+    background: #fff;
+    border: 1px solid #ddd;
+    font-size: 1.5rem;
+  }
+  .card button {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.5rem;
+    border: none;
+    background: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: #888;
+  }
+</style>
+</head>
+<body>
+<h1>Meal Planner Wheel</h1>
+<svg viewBox="0 0 400 400">
+  <g id="wheel"></g>
+  <polygon points="190,0 210,0 200,22" fill="#e4572e" />
+</svg>
+<div id="result">
+  <div class="card">
+    <button id="close" aria-label="Close">&times;</button>
+    <span id="recipe"></span>
+  </div>
+</div>
+<script>
+  const C = 200, R = 195;
+  const wheel = document.getElementById('wheel');
+  const result = document.getElementById('result');
+  let recipes = [], rotation = 0, spinning = false, pick = 0;
+
+  const point = (deg, r) => {
+    const a = deg * Math.PI / 180;
+    return [C + r * Math.sin(a), C - r * Math.cos(a)];
+  };
+
+  fetch('recipes.csv').then(r => r.text()).then(text => {
+    const [header, ...rows] = text.trim().split('\n').map(l => l.split(','));
+    recipes = rows.map(row => Object.fromEntries(header.map((h, i) => [h.trim(), row[i]?.trim()])));
+    draw();
+  });
+
+  function draw() {
+    const seg = 360 / recipes.length;
+    wheel.innerHTML = recipes.map((r, i) => {
+      const [x1, y1] = point(i * seg, R);
+      const [x2, y2] = point((i + 1) * seg, R);
+      const mid = (i + 0.5) * seg;
+      return `<path d="M${C},${C} L${x1},${y1} A${R},${R} 0 0 1 ${x2},${y2} Z"
+                fill="${i % 2 ? '#f2f2f2' : '#e0e0e0'}" stroke="#fff" />
+              <text x="${C + R - 12}" y="${C}" text-anchor="end" dominant-baseline="middle"
+                transform="rotate(${mid - 90} ${C} ${C})">${r.name}</text>`;
+    }).join('');
+  }
+
+  document.querySelector('svg').addEventListener('click', () => {
+    if (spinning || !recipes.length || result.classList.contains('show')) return;
+    spinning = true;
+    const seg = 360 / recipes.length;
+    pick = Math.floor(Math.random() * recipes.length);
+    const target = (360 - (pick + 0.5) * seg) % 360;
+    rotation += 5 * 360 + ((target - rotation) % 360 + 360) % 360;
+    wheel.style.transform = `rotate(${rotation}deg)`;
+  });
+
+  wheel.addEventListener('transitionend', () => {
+    spinning = false;
+    document.getElementById('recipe').textContent = recipes[pick].name;
+    result.classList.add('show');
+  });
+
+  document.getElementById('close').addEventListener('click', () => result.classList.remove('show'));
+</script>
+</body>
+</html>
