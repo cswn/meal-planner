@@ -8,58 +8,104 @@
   body {
     margin: 0;
     min-height: 100vh;
+    min-height: 100dvh;
+    padding: 1.5rem;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-family: system-ui, sans-serif;
-    background: #fff;
-    color: #222;
+    gap: 1.5rem;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: #faf8f5;
+    color: #2b2b2b;
   }
-  h1 { font-weight: 400; margin: 0 0 1rem; }
-  svg { width: min(80vw, 80vh); height: min(80vw, 80vh); cursor: pointer; }
+  h1 {
+    margin: 0;
+    font-weight: 600;
+    font-size: clamp(1.5rem, 6vw, 2.25rem);
+    letter-spacing: -0.02em;
+    text-align: center;
+  }
+  .hint { margin: -1rem 0 0; color: #9a948c; font-size: 0.9rem; }
+  svg {
+    width: min(90vw, 70dvh);
+    height: min(90vw, 70dvh);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    filter: drop-shadow(0 12px 30px rgba(60, 40, 20, 0.12));
+  }
   #wheel {
     transform-origin: 200px 200px;
     transition: transform 4s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  #wheel text { font-size: 12px; fill: #333; }
+  #wheel text { font-size: 11px; font-weight: 500; fill: #3d3a36; }
   #result {
     position: fixed;
     inset: 0;
     display: none;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(250, 248, 245, 0.6);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
   }
   #result.show { display: flex; }
+  #result.show .card { animation: pop 0.25s ease-out; }
+  @keyframes pop {
+    from { opacity: 0; transform: scale(0.95); }
+  }
   .card {
     position: relative;
-    padding: 2rem 3rem;
+    padding: 2.5rem 3.5rem 2rem;
+    max-width: 80vw;
+    box-sizing: border-box;
+    text-align: center;
+    overflow-wrap: anywhere;
     background: #fff;
-    border: 1px solid #ddd;
-    font-size: 1.5rem;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(60, 40, 20, 0.15);
   }
+  .label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #9a948c;
+  }
+  #recipe { font-size: 1.75rem; font-weight: 600; letter-spacing: -0.01em; }
   .card button {
     position: absolute;
-    top: 0.25rem;
+    top: 0.5rem;
     right: 0.5rem;
+    width: 44px;
+    height: 44px;
     border: none;
+    border-radius: 50%;
     background: none;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
+    line-height: 1;
     cursor: pointer;
-    color: #888;
+    color: #9a948c;
   }
+  .card button:hover { background: #f3f0eb; }
 </style>
 </head>
 <body>
 <h1>Meal Planner Wheel</h1>
+<p class="hint">Tap the wheel to spin</p>
 <svg viewBox="0 0 400 400">
   <g id="wheel"></g>
-  <polygon points="190,0 210,0 200,22" fill="#e4572e" />
+  <circle cx="200" cy="200" r="22" fill="#fff" />
+  <circle cx="200" cy="200" r="6" fill="#2b2b2b" />
+  <path d="M188,2 L212,2 L200,26 Z" fill="#2b2b2b" stroke="#2b2b2b" stroke-width="4" stroke-linejoin="round" />
 </svg>
 <div id="result">
   <div class="card">
     <button id="close" aria-label="Close">&times;</button>
+    <span class="label">Tonight</span>
     <span id="recipe"></span>
   </div>
 </div>
@@ -87,7 +133,7 @@
       const [x2, y2] = point((i + 1) * seg, R);
       const mid = (i + 0.5) * seg;
       return `<path d="M${C},${C} L${x1},${y1} A${R},${R} 0 0 1 ${x2},${y2} Z"
-                fill="${i % 2 ? '#f2f2f2' : '#e0e0e0'}" stroke="#fff" />
+                fill="hsl(${i * 360 / recipes.length} 55% 88%)" stroke="#fff" stroke-width="2" />
               <text x="${C + R - 12}" y="${C}" text-anchor="end" dominant-baseline="middle"
                 transform="rotate(${mid - 90} ${C} ${C})">${r.name}</text>`;
     }).join('');
